@@ -87,3 +87,20 @@ spec:
     - name: prometheus-kube-prometheus-prometheus
       port: 9090
       scheme: http
+# ---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: prometheus
+#   namespace: monitoring
+# spec:
+#   entryPoints:
+#     - http
+#   routes:
+#   - match: Host(`rancher.localhost`)
+#     kind: Rule
+#     middlewares:
+#     services:
+#     - name: prometheus-kube-prometheus-prometheus
+#       port: 6969
+#       scheme: http

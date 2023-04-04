@@ -17,7 +17,7 @@ Or
 ```
 $ kind create cluster --config cluster.yaml
 # untaint the master
-$ kubectl taint nodes --all node-role.kubernetes.io/master-
+$ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 ```
 Then apply the manifests
 ```
