@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export INSTALL_PROM=no
+export INSTALL_PROM=yes
 
 # Create the cluster
 if ! kind create cluster --config cluster.yaml; then
@@ -8,22 +8,16 @@ if ! kind create cluster --config cluster.yaml; then
 fi;
 
 # Untaint the master
-kubectl --context kind-kind taint nodes --all node-role.kubernetes.io/master- || true
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 
 # Applies the manifests
-kubectl --context kind-kind apply -f bundle
-# yeah some CRDs are not available right away
-sleep 10
+kubectl --context kind-kind apply -f bundle/00-traefik-crds.yaml
 kubectl --context kind-kind apply -f bundle
 
-# give some crds time to register
-sleep 10
-# and try again
-kubectl --context kind-kind apply -f bundle
-
-# Installs the metrics server
-kubectl --context kind-kind apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-sleep 10
+# Install metrics server
+helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm repo update
+helm upgrade --install --set args={--kubelet-insecure-tls} metrics-server metrics-server/metrics-server --namespace kube-system
 
 # Install stuff via Helm
 helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
@@ -46,8 +40,9 @@ echo ""
 echo "Traefik: http://traefik.localhost"
 echo "Dashboard: http://dashboard.localhost"
 if [ "${INSTALL_PROM}" = "yes" ]; then
-    echo "http://grafana.localhost credentials: $(kubectl get secret -n monitoring prometheus-grafana -oyaml | grep admin-user| cut -d: -f2|tr -d \  | base64 -d):$(kubectl get secret -n monitoring prometheus-grafana -oyaml | grep admin-password| cut -d: -f2|tr -d \  | base64 -d)\n"
-fi;
+    echo "http://grafana.localhost credentials: $(kubectl get secret -n monitoring prometheus-grafana -oyaml | grep admin-user| cut -d: -f2|tr -d \  | base64 -d):$(kubectl get secret -n monitoring prometheus-grafana -oyaml | grep admin-password| cut -d: -f2|tr -d \  | base64 -d)\
+    "
+fi
 
 echo "The vault unlock secret (root token) lives in the vault/vault-unlock secret, to get the root token wait up to one minute then run"
 echo "  kubectl get secret -n vault vault-unlock -ojson | jq -r .data.value | base64 -d | jq -r .root_token"

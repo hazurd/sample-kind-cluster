@@ -26,9 +26,4 @@ $ kubectl --context kind-kind apply -f bundle
 
 Wait a bit then you should have your traefik dashboard available at [localhost:8080](http://localhost:8080)
 
-You can also install helm:
-```
-helm init --service-account=tiller
-```
-
 The script will also install the k8s dashboard that will be accessible at [dashboard.localhost](http://dashboard.localhost) and the traefik dashboard at [traefik.localhost](http://traefik.localhost/dashboard/#/)
